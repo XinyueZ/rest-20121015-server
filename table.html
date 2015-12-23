@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <title>Rolling</title>
+  <meta http-equiv="refresh" content="3600">
+  <head>
+    <title>Rolling</title>
+    <style type="text/css">
+      table {
+          width:100%;
+      }
+      table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+      }
+      th, td {
+          padding: 5px;
+          text-align: left;
+      }
+      table#tbmain tr:nth-child(even) {
+          background-color: #eee;
+      }
+      table#tbmain tr:nth-child(odd) {
+         background-color:#fff;
+      }
+      table#tbmain th	{
+          background-color: black;
+          color: white;
+      }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="https://cdn.firebase.com/js/client/2.3.2/firebase.js"></script>
+  </head>
+  <body>
+    <table id="tbmain">
+      <caption>Devices Rolling</caption>
+      <tr>
+        <th>Client ID</th>
+        <th>Posted time</th>
+        <th>Comment</th>
+        <th>Operation</th>
+      </tr>
+      <tbody>
+      {{range $index, $elmt := .}}
+        <tr>
+          <td>{{.ReqId}}</td>
+          <td>{{.RequestTime}}</td>
+          <td>{{.Comment}}</td>
+          <td><button id = "remove_btn_{{$index}}" value = '{{.ReqId}}'  >Remove</button></td>
+        </tr>
+      {{end}}
+      </tbody>
+   </table>
+  </body>
+  <script>
+      $(document).on('click', 'button', function() {
+        var button = $( this )
+        button.attr("disabled", true);
+        var id = this.value;
+        $.post( "remove", id)
+            .done(function( data ) {
+              //After being removed.
+              var tr = button.parent().parent();//The <tr> to remove.
+              tr.effect( "highlight", {color:"#FF0000"}, 1000 )
+              tr.fadeOut(1000, function() {//Fade out first.
+                tr.slideUp(1000, function() {//Slide-up then.
+                    $(this).remove();
+                    button.removeAttr("disabled");
+                  });
+              });
+            });
+      });
+
+    var count = 0;
+    //Init firebase
+    var db = new Firebase("https://rest-20121015.firebaseio.com/");
+    db.authWithCustomToken("IJ0kevPaQaMof0DxBXkwM54DdJ36cWK8wbedkoMe", function(error, authData) {
+      if (error) {
+        console.log("Authentication Failed!", error);
+      } else {
+        console.log("Authenticated successfully with payload:", authData);
+      }
+    });
+    var onChildAdded = function(childSnapshot, prevChildKey) {
+      var len = {{len .}}
+      if (count < len) {
+        count++;
+        return;
+      }
+      row = $("<tr></tr>");
+      col1 = $("<td>"+childSnapshot.child("reqId").val()+"</td>");
+      var date = new Date(childSnapshot.child("reqTime").val() );
+      var dateStr = date.toString();
+      var n = dateStr.toString().indexOf("GMT");
+      dateStr = dateStr.substring(0, n);
+      col2 = $("<td>"+dateStr.trim()+"</td>");
+      col3 = $("<td>"+childSnapshot.child("comment").val()+"</td>");
+      col4 = $("<td><button id = 'remove_btn' value = ''>Remove</button></td>");
+      row.append(col1,col2,col3,col4).prependTo("#tbmain > tbody:last-child");
+      row.effect( "highlight", {color:"#00FF00"}, 1000 )
+    }
+    db.on('child_added', onChildAdded);
+  </script>
+</html>
