@@ -152,7 +152,7 @@ func handleRemove(w http.ResponseWriter, r *http.Request) {
 				if err := f.Remove(); err != nil {
 					status(w, fmt.Sprintf("%v", err), 500)
 				} else {
-					statusNoMessage(w, 200)
+					status(w, whichItemToRemove, 200)
 				}
 			} else {
 				s := fmt.Sprintf("%v", e)
