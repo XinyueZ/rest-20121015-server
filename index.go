@@ -35,6 +35,7 @@ func (s ClientArray) Less(i, j int) bool {
 func init() {
 	http.HandleFunc("/insert", handleInsert)
 	http.HandleFunc("/remove", handleRemove)
+	http.HandleFunc("/delete", handleDelete)
 	http.HandleFunc("/list", handleList)
 	http.HandleFunc("/table", handleTable)
 }
@@ -142,12 +143,9 @@ func handleRemove(w http.ResponseWriter, r *http.Request) {
 			status(w, "Please give client-ID on post-body.", 500)
 		} else {
 			var whichItemToRemove string = clientID
-			f := firego.NewGAE(appengine.NewContext(r), DB)
-			f.Auth(AUTH)
-
 			//Delete client which the key(from DB).
 			if whichItemToRemove != "" {
-				f = firego.NewGAE(appengine.NewContext(r), DB+"/"+whichItemToRemove)
+				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+whichItemToRemove)
 				f.Auth(AUTH)
 				if err := f.Remove(); err != nil {
 					status(w, fmt.Sprintf("%v", err), 500)
@@ -158,6 +156,33 @@ func handleRemove(w http.ResponseWriter, r *http.Request) {
 				s := fmt.Sprintf("%v", e)
 				status(w, s, 500)
 			}
+		}
+	} else {
+		s := fmt.Sprintf("%v", e)
+		status(w, s, 500)
+	}
+}
+
+func handleDelete(w http.ResponseWriter, r *http.Request) {
+	client := Client{}
+	if bys, e := ioutil.ReadAll(r.Body); e == nil {
+		if e := json.Unmarshal(bys, &client); e == nil {
+			//Delete client which the key(from DB).
+			if client.ReqId != "" {
+				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+(client.ReqId))
+				f.Auth(AUTH)
+				if err := f.Remove(); err != nil {
+					status(w, fmt.Sprintf("%v", err), 500)
+				} else {
+					status(w, client.ReqId, 200)
+				}
+			} else {
+				s := fmt.Sprintf("%v", e)
+				status(w, s, 500)
+			}
+		} else {
+			s := fmt.Sprintf("%v", e)
+			status(w, s, 500)
 		}
 	} else {
 		s := fmt.Sprintf("%v", e)
