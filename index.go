@@ -20,6 +20,10 @@ type Client struct {
 	Comment string `json:"comment"`
 }
 
+type Delete struct {
+	ReqId string `json:"reqId"`
+}
+
 type ClientArray []Client
 
 func (s ClientArray) Len() int {
@@ -164,17 +168,17 @@ func handleRemove(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleDelete(w http.ResponseWriter, r *http.Request) {
-	client := Client{}
+	del := Delete{}
 	if bys, e := ioutil.ReadAll(r.Body); e == nil {
-		if e := json.Unmarshal(bys, &client); e == nil {
+		if e := json.Unmarshal(bys, &del); e == nil {
 			//Delete client which the key(from DB).
-			if client.ReqId != "" {
-				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+(client.ReqId))
+			if del.ReqId != "" {
+				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+(del.ReqId))
 				f.Auth(AUTH)
 				if err := f.Remove(); err != nil {
 					status(w, fmt.Sprintf("%v", err), 500)
 				} else {
-					status(w, client.ReqId, 200)
+					status(w, del.ReqId, 200)
 				}
 			} else {
 				s := fmt.Sprintf("%v", e)
