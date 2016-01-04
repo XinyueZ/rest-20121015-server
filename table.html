@@ -43,9 +43,9 @@
       <tbody>
       {{range $index, $elmt := .}}
         <tr id = '{{.ReqId}}'>
-          <td>{{.ReqId}}</td>
-          <td>{{.RequestTime}}</td>
-          <td>{{.Comment}}</td>
+          <td id = 'col_1_{{.ReqId}}'>{{.ReqId}}</td>
+          <td id = 'col_2_{{.ReqId}}'>{{.RequestTime}}</td>
+          <td id = 'col_3_{{.ReqId}}'>{{.Comment}}</td>
           <td><button id = "remove_btn_{{$index}}" value = '{{.ReqId}}'  >Remove</button></td>
         </tr>
       {{end}}
@@ -93,16 +93,40 @@
     var onChildRemoved = function(oldChildSnapshot) {
       // code to handle child removal.
       var reqId = oldChildSnapshot.val().reqId;
-      console.log("onChildRemoved id: ", reqId);
+      // console.log("onChildRemoved reqId: ", reqId);
       //After being removed.
       var tr =  $( "#" + reqId );
       tr.effect( "highlight", {color:"#FF0000"}, 1000 );
       tr.fadeOut(1000, function() {//Fade out first.
         tr.slideUp(1000, function() {//Slide-up then.
-            $(this).remove(); 
+            $(this).remove();
           });
       });
     }
     db.on('child_removed', onChildRemoved);
+
+    var onChildChanged = function(childSnapshot, prevChildKey) {
+      // code to handle child data changes.
+      var reqId = childSnapshot.val().reqId;
+      var newTime = childSnapshot.val().reqTime;
+      var newComment = childSnapshot.val().comment;
+      console.log("onChildChanged reqId: ", reqId);
+      console.log("onChildChanged newTime: ", newTime);
+      console.log("onChildChanged newComment: ", newComment);
+
+      //After being update.
+      var tr =  $( "#" + reqId );
+      var date = new Date(newTime);
+      var dateStr = date.toString();
+      var n = dateStr.toString().indexOf("GMT");
+      dateStr = dateStr.substring(0, n);
+      var trCol2 =  $( "#" + 'col_2_' + reqId  );
+      trCol2.html(dateStr)
+      var trCol3 =  $( "#" + 'col_3_' + reqId  );
+      trCol3.html(newComment)
+
+      tr.effect( "highlight", {color:"#0080FF"}, 1000 );
+    }
+    db.on('child_changed', onChildChanged);
   </script>
 </html>
