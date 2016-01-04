@@ -99,8 +99,7 @@
       tr.effect( "highlight", {color:"#FF0000"}, 1000 );
       tr.fadeOut(1000, function() {//Fade out first.
         tr.slideUp(1000, function() {//Slide-up then.
-            $(this).remove();
-            button.removeAttr("disabled");
+            $(this).remove(); 
           });
       });
     }
