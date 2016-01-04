@@ -42,7 +42,7 @@
       </tr>
       <tbody>
       {{range $index, $elmt := .}}
-        <tr>
+        <tr id = '{{.ReqId}}'>
           <td>{{.ReqId}}</td>
           <td>{{.RequestTime}}</td>
           <td>{{.Comment}}</td>
@@ -57,18 +57,7 @@
         var button = $( this )
         button.attr("disabled", true);
         var id = this.value;
-        $.post( "remove", id)
-            .done(function( data ) {
-              //After being removed.
-              var tr = button.parent().parent();//The <tr> to remove.
-              tr.effect( "highlight", {color:"#FF0000"}, 1000 )
-              tr.fadeOut(1000, function() {//Fade out first.
-                tr.slideUp(1000, function() {//Slide-up then.
-                    $(this).remove();
-                    button.removeAttr("disabled");
-                  });
-              });
-            });
+        $.post( "remove", id);
       });
 
     var count = 0;
@@ -100,5 +89,21 @@
       row.effect( "highlight", {color:"#00FF00"}, 1000 )
     }
     db.on('child_added', onChildAdded);
+
+    var onChildRemoved = function(oldChildSnapshot) {
+      // code to handle child removal.
+      var reqId = oldChildSnapshot.val().reqId;
+      console.log("onChildRemoved id: ", reqId);
+      //After being removed.
+      var tr =  $( "#" + reqId );
+      tr.effect( "highlight", {color:"#FF0000"}, 1000 );
+      tr.fadeOut(1000, function() {//Fade out first.
+        tr.slideUp(1000, function() {//Slide-up then.
+            $(this).remove();
+            button.removeAttr("disabled");
+          });
+      });
+    }
+    db.on('child_removed', onChildRemoved);
   </script>
 </html>

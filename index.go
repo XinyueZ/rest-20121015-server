@@ -149,9 +149,9 @@ func handleRemove(w http.ResponseWriter, r *http.Request) {
 			var whichItemToRemove string = clientID
 			//Delete client which the key(from DB).
 			if whichItemToRemove != "" {
-				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+whichItemToRemove)
+				f := firego.NewGAE(appengine.NewContext(r), DB)
 				f.Auth(AUTH)
-				if err := f.Remove(); err != nil {
+				if err := f.Child(whichItemToRemove).Remove(); err != nil {
 					status(w, fmt.Sprintf("%v", err), 500)
 				} else {
 					status(w, whichItemToRemove, 200)
@@ -173,9 +173,9 @@ func handleDelete(w http.ResponseWriter, r *http.Request) {
 		if e := json.Unmarshal(bys, &del); e == nil {
 			//Delete client which the key(from DB).
 			if del.ReqId != "" {
-				f := firego.NewGAE(appengine.NewContext(r), DB+"/"+(del.ReqId))
+				f := firego.NewGAE(appengine.NewContext(r), DB)
 				f.Auth(AUTH)
-				if err := f.Remove(); err != nil {
+				if err := f.Child(del.ReqId).Remove(); err != nil {
 					status(w, fmt.Sprintf("%v", err), 500)
 				} else {
 					status(w, del.ReqId, 200)
