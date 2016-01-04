@@ -40,6 +40,7 @@ func init() {
 	http.HandleFunc("/insert", handleInsert)
 	http.HandleFunc("/remove", handleRemove)
 	http.HandleFunc("/delete", handleDelete)
+	http.HandleFunc("/update", handleUpdate)
 	http.HandleFunc("/list", handleList)
 	http.HandleFunc("/table", handleTable)
 }
@@ -179,6 +180,34 @@ func handleDelete(w http.ResponseWriter, r *http.Request) {
 					status(w, fmt.Sprintf("%v", err), 500)
 				} else {
 					status(w, del.ReqId, 200)
+				}
+			} else {
+				s := fmt.Sprintf("%v", e)
+				status(w, s, 500)
+			}
+		} else {
+			s := fmt.Sprintf("%v", e)
+			status(w, s, 500)
+		}
+	} else {
+		s := fmt.Sprintf("%v", e)
+		status(w, s, 500)
+	}
+}
+
+func handleUpdate(w http.ResponseWriter, r *http.Request) {
+	client := Client{}
+	if bys, e := ioutil.ReadAll(r.Body); e == nil {
+		if e := json.Unmarshal(bys, &client); e == nil {
+			//Delete client which the key(from DB).
+			if client.ReqId != "" {
+				f := firego.NewGAE(appengine.NewContext(r), DB)
+				f.Auth(AUTH)
+				childFB := f.Child(client.ReqId)
+				if e := childFB.Set(client); e != nil {
+					status(w, fmt.Sprintf("%v", e), 500)
+				} else {
+					status(w, client.ReqId, 200)
 				}
 			} else {
 				s := fmt.Sprintf("%v", e)
